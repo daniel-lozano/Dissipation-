@@ -22,6 +22,16 @@ def integrand(x,k,eta,hbar,m,a):
     return a*m*exp/div
 
 
+def expo(k,eta,hbar,m,a):
+    
+    factor1= - 2*k*a
+    
+    factor2= - (eta/hbar)*pow(a,2)
+    
+    exp= np.exp(factor1+factor2)
+
+    return exp
+
 def integrand1(xt,x,k,eta,hbar,m,a):
     
     factor1= - 2*k*x
@@ -48,10 +58,6 @@ def integrand1(xt,x,k,eta,hbar,m,a):
 
 print("el argumneto es",sys.argv[0])
 
-#definiendo energias adimensionales
-Ne=100
-Eb=np.linspace(0.01,0.99,Ne)
-Ea=np.linspace(1.01,2.0,Ne)
 
 #Constantes usadas
 
@@ -65,15 +71,57 @@ print("L=",a," fermi")
 print("Vo=",Vo, " MeV")
 print("hbar=",hbar," Mev*fermi\n")
 
+#definiendo energias adimensionales
+
+Ne=100
+Eb=np.linspace(0.01,0.99,Ne)
+Ea=np.linspace(1.01,2.0,Ne)
+
+
+ENERGY=np.zeros(2*len(Eb))
+ETA=np.zeros(2*len(Eb))
+
+
+for i in range(len(Eb)):
+    ENERGY[i]=Eb[i]
+    ENERGY[i+len(Eb)]=Ea[i]
+
+
+
+
+# Eta restrictions for the given condition \Delta E<<E
+
+for i in range(len(ENERGY)):
+    
+    ETA[i]=ENERGY[i]*np.sqrt(m*Vo/(2*abs(1-ENERGY[i])))/a
+
+
+
+plt.plot(ENERGY,ETA)
+plt.xlabel("$ E/V_0   $",size=20)
+plt.title("$ \eta_{max} $",size=20)
+plt.show()
+plt.close()
+
 
 '''
 Tenemos que tener que eta*l << hbar*k, para satisfacerlo tomaremos el k mas pequeño posible correspondiente a E=0
 '''
 
 
-#eta=np.linspace(0,5E-11,2) # eV/Fermi
-eta=[0,float(sys.argv[1])]
+
+eta1=float(sys.argv[1])
+eta=[0,eta1,eta1*2.0]
+Min_E=np.zeros(len(eta))
+
 print("eta=",eta)
+
+for i in range(len(eta)):
+    Min_E[i]=ENERGY[np.where(eta[i]<ETA)[0][0]]
+    print(" eta=",eta[i]," Minimun Energy= ",ENERGY[np.where(eta[i]<ETA)[0][0]])
+
+
+
 
 
 Tb=np.zeros(len(Eb))
@@ -83,8 +131,40 @@ Ta=np.zeros(len(Eb))
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Comenzando el calculo %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 '''
 
+#calculando la maxima perdida de energia
+dE=np.zeros(len(Ea))
+
+
+
+for j in range(len(eta)-1):
+    
+    for i in range(len(dE)):
+        
+        dE[i]=(eta[j+1]*np.sqrt(2*(Vo-Vo*Eb[i])/(m))*a)/(Eb[i]*Vo)
+        
+        ETA_a=(1/a)*(Ea[i])*np.sqrt(m*Vo/2)/np.sqrt(Ea[i]-1)
+        
+        ETA_b=(1/a)*(Ea[i])*np.sqrt(m*Vo/2)/np.sqrt(Ea[i]-1)
+    
+    
+    plt.plot(Eb,dE,label="$ \eta = $"+str(eta[j+1])+ "$ MeV/fermi $" )
+
+
+plt.xlabel("$ E/V_0 $",size=20)
+plt.ylabel("$  dE/E_b $",size=20)
+plt.ylim(0,1)
+plt.title("$ Energy\ percentage\ lost\  $")
+plt.legend()
+plt.show()
+plt.close()
+
+
+
+
 
 ##solving for E bellow
+
+plt.figure(1)
 
 for j in range(len(eta)):
 
@@ -102,10 +182,27 @@ for j in range(len(eta)):
 
         Tb[i]=(N_factor**2)*(resultados[0])* (6.58*10**(-22)/hbar)
         
-        nombre="$ \eta= $"+str(eta[j]) +"$  MeV $"
+        nombre="$ \eta= $"+str(eta[j]) +"$  MeV/fermi $"
 
-        
+    plt.subplot(121)
     plt.plot(Eb,Tb,label=nombre)
+
+
+
+
+
+plt.legend(loc=2)
+plt.xlabel("$  E/V_0 $",size=20)
+plt.ylabel(" $ T\ [s] $ ",size=20)
+plt.xlim(0.1486,1)
+plt.title(" $ Dwell\ time\ $",size=20)
+plt.savefig("Integral_disp_vel.png")
+
+#plt.show()
+#plt.close()
+
+
+
 
 ##imrpimiento archivo
 
@@ -118,18 +215,10 @@ for i in range(len(Tb)):
 f.close()
 
 
-dE=np.zeros(len(Ea))
 
 
-for i in range(len(dE)):
-    dE[i]=eta[1]*np.sqrt(2*(Ea[i]-1)/(m*Vo))*a
 
-
-print("minimun dissipation ",min(dE))
-
-print("maximun dissipation ",max(dE))
-
-
+'''
 
 ##solving for E above
 
@@ -161,23 +250,124 @@ for j in range(len(eta)):
     
     plt.plot(Ea,Ta,label=nombre)
 
+'''
+
+
+
+#Calculando el tiempo traverso
+
+T_trav=np.zeros(len(Ea))
+
+for j in range(len(eta)):
+    
+    for i in range(len(Eb)):
+        
+        k=np.sqrt(2*m*Vo*(1-Eb[i]))/hbar
+        
+        T_trav[i]=(6.58*10**(-22)/hbar)*m*a/(hbar*k)
+        
+        if(j!=0):
+            A=hbar*k/eta[j]
+    
+            T_trav[i]=(m/eta[j])*np.log(a/A+1)* (6.58*10**(-22)/hbar)
+    plt.subplot(122)
+    plt.plot(Eb,T_trav,label="$ \eta= $"+str(eta[j]) +"$  MeV/fermi $")
+
+
+
+plt.xlim(0.1485,1)
+plt.title("$ Traversal\ Time\ $")
+plt.xlabel("$ E/V_0 $",size=20)
+plt.xlim(0.1486,1)
+plt.ylabel("$  Time\ [s] $",size=20)
+plt.legend()
+plt.show()
+plt.close()
+
+
+
+
+#Calculando el tiempo de mora de transmision
+
+T_trans=np.zeros(len(Ea))
+T_ref=np.zeros(len(Ea))
+
+plt.figure(2)
+
+
+for j in range(len(eta)):
+    
+    for i in range(len(Eb)):
+        
+        k=np.sqrt(2*m*Vo*(1-Eb[i]))/hbar
+        
+        kp=np.sqrt(2*m*Vo*(Eb[i]))/hbar
+        
+        N_factor= 2*np.sqrt(k*kp/(k**2+kp**2))
+        
+        funcion= lambda x: integrand(x,k,eta[j],hbar,m,a)
+        
+        exponencial=expo(k,eta[j],hbar,m,a)
+        
+        resultados=integrate.quad(funcion,0,1,limit=100,limlst=96)
+        
+        T_trans[i]=(N_factor**2)*(resultados[0])* (6.58*10**(-22)/hbar)/(1.0/(1.0+ 1/exponencial))
+        
+        
+        nombre="$ \eta= $"+str(eta[j]) +"$  MeV/fermi $"
+    
+    plt.subplot(121)
+    plt.plot(Eb,T_trans,label=nombre)
+    plt.title("$ Transmission\ Dwell\ Time\ $")
+    plt.xlabel("$ E/V_0 $",size=20)
+    plt.xlim(0.05,1)
+    plt.ylabel("$  Time\ [s]\ $",size=20)
+    plt.legend()
+
+
+
+for j in range(len(eta)):
+    
+    for i in range(len(Eb)):
+        
+        k=np.sqrt(2*m*Vo*(1-Eb[i]))/hbar
+        
+        kp=np.sqrt(2*m*Vo*(Eb[i]))/hbar
+        
+        N_factor= 2*np.sqrt(k*kp/(k**2+kp**2))
+        
+        funcion= lambda x: integrand(x,k,eta[j],hbar,m,a)
+        
+        exponencial=expo(k,eta[j],hbar,m,a)
+        
+        resultados=integrate.quad(funcion,0,1,limit=100,limlst=96)
+        
+        T_ref[i]=(N_factor**2)*(resultados[0])* (6.58*10**(-22)/hbar)/((1.0/exponencial)/(1.0+ 1/exponencial))
+        
+        
+        nombre="$ \eta= $"+str(eta[j]) +"$  MeV/fermi $"
+    
+    plt.subplot(122)
+    plt.plot(Eb,T_ref,label=nombre)
+    plt.title("$ Reflection\ Dwell\ Time\ $")
+    plt.xlabel("$ E/V_0 $",size=20)
+    plt.xlim(0.05,1)
+    plt.ylabel("$  Time\ [s]\ $",size=20)
+    plt.legend()
 
 
 
 
 
 
-
-
-#plt.figure(figsize=(20,10))
-
-plt.legend(loc=2)
-plt.xlabel("$  E/V_0 $",size=20)
-#plt.ylim(0,1E-15)
-plt.ylabel(" $ Time $ ",size=20)
-plt.savefig("Integral_disp_vel.png")
 
 plt.show()
+plt.close()
+
+
+
+
+
 
 
 
