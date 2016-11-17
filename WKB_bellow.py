@@ -100,7 +100,8 @@ for i in range(len(ENERGY)):
 plt.plot(ENERGY,ETA)
 plt.xlabel("$ E/V_0   $",size=20)
 plt.title("$ \eta_{max} $",size=20)
-plt.show()
+plt.savefig("eta_max.png")
+plt.show(1)
 plt.close()
 
 
@@ -155,7 +156,8 @@ plt.ylabel("$  dE/E_b $",size=20)
 plt.ylim(0,1)
 plt.title("$ Energy\ percentage\ lost\  $")
 plt.legend()
-plt.show()
+plt.savefig("Percent_energy.png")
+plt.show(2)
 plt.close()
 
 
@@ -164,7 +166,7 @@ plt.close()
 
 ##solving for E bellow
 
-plt.figure(1)
+plt.figure(1,figsize=(15,8))
 
 for j in range(len(eta)):
 
@@ -196,7 +198,7 @@ plt.xlabel("$  E/V_0 $",size=20)
 plt.ylabel(" $ T\ [s] $ ",size=20)
 plt.xlim(0.1486,1)
 plt.title(" $ Dwell\ time\ $",size=20)
-plt.savefig("Integral_disp_vel.png")
+
 
 #plt.show()
 #plt.close()
@@ -269,7 +271,7 @@ for j in range(len(eta)):
         if(j!=0):
             A=hbar*k/eta[j]
     
-            T_trav[i]=(m/eta[j])*np.log(a/A+1)* (6.58*10**(-22)/hbar)
+            T_trav[i]= (m/eta[j])*np.log( 1+ a/A)* (6.58*10**(-22)/hbar)
     plt.subplot(122)
     plt.plot(Eb,T_trav,label="$ \eta= $"+str(eta[j]) +"$  MeV/fermi $")
 
@@ -281,6 +283,8 @@ plt.xlabel("$ E/V_0 $",size=20)
 plt.xlim(0.1486,1)
 plt.ylabel("$  Time\ [s] $",size=20)
 plt.legend()
+
+plt.savefig("Integral_disp_vel.png")
 plt.show()
 plt.close()
 
@@ -292,7 +296,7 @@ plt.close()
 T_trans=np.zeros(len(Ea))
 T_ref=np.zeros(len(Ea))
 
-plt.figure(2)
+plt.figure(2,figsize=(15,8))
 
 
 for j in range(len(eta)):
@@ -359,8 +363,7 @@ for j in range(len(eta)):
 
 
 
-
-
+plt.savefig("trans_ref_time.png",dpi=400)
 plt.show()
 plt.close()
 
