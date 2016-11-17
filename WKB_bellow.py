@@ -53,10 +53,17 @@ def integrand1(xt,x,k,eta,hbar,m,a):
 '''
 
 
+if(len(sys.argv)!=2):
+    print("Introduzca un solo valor de disipación")
+    print("Número de parámetros dados=", len(sys.argv)-1)
+    
+    exit()
+
+
 #definiendo el espacio
 
 
-print("el argumneto es",sys.argv[0])
+print("el argumneto es",sys.argv[1])
 
 
 #Constantes usadas
